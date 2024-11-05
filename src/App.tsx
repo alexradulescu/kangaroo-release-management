@@ -1,117 +1,140 @@
-import React, { useState } from 'react';
-import { Container, TextInput, Stack, Title, Grid } from '@mantine/core';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Container, TextInput, Stack, Title, Grid, Group, Anchor } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
-import { Notifications, notifications } from '@mantine/notifications';
-import { Check } from 'lucide-react';
-import { getNextReleaseDate, formatDate } from './utils';
-import { MessagePreview } from './components/MessagePreview';
+import { Notifications } from '@mantine/notifications';
+import { MessageAccordion } from './components/MessageAccordion';
+import { ReleaseChecklist } from './components/ReleaseChecklist';
+import { ExternalLinkButton } from './components/ExternalLinkButton';
+import { EnvWarning } from './components/EnvWarning';
+import { useReleaseMessages } from './hooks/useReleaseMessages';
+import { EXTERNAL_LINKS } from './constants';
+import { getMissingEnvVariables } from './config/env';
+import { 
+  isValidVersion, 
+  isValidJsmops, 
+  getJsmopsUrl, 
+  getNextReleaseDate 
+} from './utils';
 
-function App() {
+export default function App() {
+  // Form state
   const [version, setVersion] = useState('');
-  const [releaseDate, setReleaseDate] = useState<Date>(getNextReleaseDate());
-  const [jsmopsTicket, setJsmopsTicket] = useState('');
+  const [releaseDate, setReleaseDate] = useState(getNextReleaseDate());
+  const [jsmopsNumber, setJsmopsNumber] = useState('');
 
-  const isValidVersion = /^\d+\.\d+\.\d+$/.test(version);
-  const isValidUrl = jsmopsTicket.startsWith('http');
-  const isFormValid = isValidVersion && releaseDate && isValidUrl;
+  // Check missing environment variables
+  const missingEnvVars = useMemo(() => getMissingEnvVariables(), []);
 
-  const generateMessages = () => {
-    const formattedDate = formatDate(releaseDate);
-    
-    const message1 = `<Cornea next release security review>
+  // Derived state
+  const jsmopsUrl = useMemo(() => 
+    getJsmopsUrl(jsmopsNumber), [jsmopsNumber]
+  );
 
-Version to deploy: ${version}
-Release Date: ${formattedDate}
-JSMOPS Ticket: ${jsmopsTicket}
-Github Diff in the JSMOPS ticket automatically generated
+  const isFormValid = useMemo(() => 
+    isValidVersion(version) && releaseDate && isValidJsmops(jsmopsNumber),
+    [version, releaseDate, jsmopsNumber]
+  );
 
-@security-reviewers Pls review Cornea above mentioned version. This is a standard release.`;
+  // Messages
+  const { message1, message2 } = useReleaseMessages(version, releaseDate, jsmopsUrl);
 
-    const message2 = `<Cornea next version release approval>
+  // Handlers
+  const handleVersionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setVersion(e.target.value);
+  }, []);
 
-Version to deploy: ${version}
-Release Date: ${formattedDate}
-JSMOPS Ticket: ${jsmopsTicket}
-Github Diff in the JSMOPS ticket automatically generated
+  const handleDateChange = useCallback((date: Date | null) => {
+    setReleaseDate(date || getNextReleaseDate());
+  }, []);
 
-@techops pls review the next Cornea release`;
-
-    return { message1, message2 };
-  };
-
-  const copyToClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    notifications.show({
-      title: 'Copied to clipboard',
-      message: 'Message has been copied and ready to paste in Slack',
-      icon: <Check size={16} />,
-      color: 'teal',
-    });
-  };
-
-  const messages = generateMessages();
+  const handleJsmopsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setJsmopsNumber(e.target.value);
+  }, []);
 
   return (
     <>
       <Notifications />
       <Container size="sm" py="xl">
         <Stack gap="md">
-          <Title order={1} ta="center" mb="md">
-            Release Management
-          </Title>
+          <EnvWarning missingVars={missingEnvVars} />
+          
+          <Group justify="space-between" align="baseline">
+            <Title order={1}>Release Management</Title>
+            <Group gap="md">
+              {EXTERNAL_LINKS.map(({ label, url }) => (
+                <Anchor
+                  key={label}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                  color="teal"
+                  underline="always"
+                >
+                  {label}
+                </Anchor>
+              ))}
+            </Group>
+          </Group>
 
           <Grid gutter="md">
-            <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Grid.Col span={{ base: 12, md: 4 }}>
               <TextInput
                 label="Release Version"
                 placeholder="e.g., 3.99.1"
                 value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                error={version && !isValidVersion ? "Must be in format: digits.digits.digits" : null}
+                onChange={handleVersionChange}
+                error={version && !isValidVersion(version) ? "Must be in format: digits.digits.digits" : null}
                 required
                 autoFocus
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Grid.Col span={{ base: 12, md: 4 }}>
               <DateInput
                 label="Release Date"
                 placeholder="Pick a date"
                 value={releaseDate}
-                onChange={(date) => setReleaseDate(date || getNextReleaseDate())}
+                onChange={handleDateChange}
                 required
                 minDate={new Date()}
+                valueFormat="DD MMM YYYY"
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <TextInput
+                label="JSMOPS Ticket Number"
+                placeholder="Enter ticket number"
+                value={jsmopsNumber}
+                onChange={handleJsmopsChange}
+                error={jsmopsNumber && !isValidJsmops(jsmopsNumber) ? "Must be a valid number" : null}
+                required
+                rightSection={
+                  <ExternalLinkButton 
+                    url={jsmopsUrl}
+                    disabled={!isValidJsmops(jsmopsNumber)}
+                  />
+                }
               />
             </Grid.Col>
           </Grid>
 
-          <TextInput
-            label="JSMOPS Ticket URL"
-            placeholder="https://..."
-            value={jsmopsTicket}
-            onChange={(e) => setJsmopsTicket(e.target.value)}
-            error={jsmopsTicket && !isValidUrl ? "Must be a valid URL" : null}
-            required
-          />
-
-          <Stack gap="md" mt="md">
-            <MessagePreview
+          <Stack gap="xs" mt="sm">
+            <MessageAccordion
               title="Security Review Message"
-              message={messages.message1}
-              onCopy={() => copyToClipboard(messages.message1)}
+              message={message1}
               disabled={!isFormValid}
             />
 
-            <MessagePreview
+            <MessageAccordion
               title="Release Approval Message"
-              message={messages.message2}
-              onCopy={() => copyToClipboard(messages.message2)}
+              message={message2}
               disabled={!isFormValid}
             />
+            
+            <ReleaseChecklist />
           </Stack>
         </Stack>
       </Container>
     </>
   );
 }
-
-export default App;
