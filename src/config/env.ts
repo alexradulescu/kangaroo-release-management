@@ -2,8 +2,8 @@
 export const ENV = {
   BUILDKITE_URL: import.meta.env.VITE_BUILDKITE_URL || 'https://buildkite.com/',
   OCTOPUS_URL: import.meta.env.VITE_OCTOPUS_URL || 'https://octopus.com/',
-  JIRA_URL: import.meta.env.VITE_JIRA_URL || 'https://blockone.atlassian.net/',
-  JSMOPS_URL_PREFIX: import.meta.env.VITE_JSMOPS_URL_PREFIX || 'https://blockone.atlassian.net/jira/servicedesk/projects/JSMOPS/queues/issue/JSMOPS-',
+  JIRA_URL: import.meta.env.VITE_JIRA_URL || 'https://example.com/',
+  JSMOPS_URL_PREFIX: import.meta.env.VITE_JSMOPS_URL_PREFIX || 'https://example.com/',
   SLACK_URL: import.meta.env.VITE_SLACK_URL || 'slack://open',
 };
 
