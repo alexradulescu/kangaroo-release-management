@@ -9,29 +9,30 @@ interface ReleaseMessages {
 export function useReleaseMessages(
   version: string,
   releaseDate: Date,
-  jsmopsUrl: string
+  jsmopsUrl: string,
+  project: string = 'Cornea'
 ): ReleaseMessages {
   return useMemo(() => {
     const formattedDate = formatDate(releaseDate);
     
-    const message1 = `<Cornea next release security review>
+    const message1 = `<${project} next release security review>
 
 Version to deploy: ${version}
 Release Date: ${formattedDate}
 JSMOPS Ticket: ${jsmopsUrl}
 Github Diff in the JSMOPS ticket automatically generated
 
-@security-reviewers Pls review Cornea above mentioned version. This is a standard release.`;
+@security-reviewers Pls review ${project} above mentioned version. This is a standard release.`;
 
-    const message2 = `<Cornea next version release approval>
+    const message2 = `<${project} next version release approval>
 
 Version to deploy: ${version}
 Release Date: ${formattedDate}
 JSMOPS Ticket: ${jsmopsUrl}
 Github Diff in the JSMOPS ticket automatically generated
 
-@techops pls review the next Cornea release`;
+@techops pls review the next ${project} release`;
 
     return { message1, message2 };
-  }, [version, releaseDate, jsmopsUrl]);
+  }, [version, releaseDate, jsmopsUrl, project]);
 }

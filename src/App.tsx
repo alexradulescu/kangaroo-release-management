@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Container, TextInput, Stack, Title, Grid, Group, Anchor } from '@mantine/core';
+import { Container, TextInput, Stack, Title, Grid, Group, Anchor, Select } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { Notifications } from '@mantine/notifications';
-import { MessageAccordion } from './components/MessageAccordion';
 import { ReleaseChecklist } from './components/ReleaseChecklist';
 import { ExternalLinkButton } from './components/ExternalLinkButton';
 import { EnvWarning } from './components/EnvWarning';
@@ -21,6 +20,7 @@ export default function App() {
   const [version, setVersion] = useState('');
   const [releaseDate, setReleaseDate] = useState(getNextReleaseDate());
   const [jsmopsNumber, setJsmopsNumber] = useState('');
+  const [selectedProject, setSelectedProject] = useState<string>('Cornea');
 
   // Check missing environment variables
   const missingEnvVars = useMemo(() => getMissingEnvVariables(), []);
@@ -36,7 +36,7 @@ export default function App() {
   );
 
   // Messages
-  const { message1, message2 } = useReleaseMessages(version, releaseDate, jsmopsUrl);
+  const { message1, message2 } = useReleaseMessages(version, releaseDate, jsmopsUrl, selectedProject);
 
   // Handlers
   const handleVersionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,10 +78,22 @@ export default function App() {
           </Group>
 
           <Grid gutter="md">
-            <Grid.Col span={{ base: 12, md: 4 }}>
+            <Grid.Col span={{ base: 12, md: 3 }}>
+              <Select
+                label="Project"
+                value={selectedProject}
+                onChange={(value) => setSelectedProject(value || 'Cornea')}
+                data={[
+                  { value: 'Cornea', label: 'Cornea' },
+                  { value: 'Ctrl-UI', label: 'Ctrl-UI' },
+                ]}
+                required
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 3 }}>
               <TextInput
                 label="Release Version"
-                placeholder="e.g., 3.99.1"
+                placeholder="e.g. 3.99.1"
                 value={version}
                 onChange={handleVersionChange}
                 error={version && !isValidVersion(version) ? "Must be in format: digits.digits.digits" : null}
@@ -89,7 +101,7 @@ export default function App() {
                 autoFocus
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
+            <Grid.Col span={{ base: 12, md: 3 }}>
               <DateInput
                 label="Release Date"
                 placeholder="Pick a date"
@@ -100,10 +112,10 @@ export default function App() {
                 valueFormat="DD MMM YYYY"
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
+            <Grid.Col span={{ base: 12, md: 3 }}>
               <TextInput
-                label="JSMOPS Ticket Number"
-                placeholder="Enter ticket number"
+                label="JSMOPS Number"
+                placeholder="e.g. 12345"
                 value={jsmopsNumber}
                 onChange={handleJsmopsChange}
                 error={jsmopsNumber && !isValidJsmops(jsmopsNumber) ? "Must be a valid number" : null}
@@ -119,19 +131,11 @@ export default function App() {
           </Grid>
 
           <Stack gap="xs" mt="sm">
-            <MessageAccordion
-              title="Security Review Message"
-              message={message1}
-              disabled={!isFormValid}
+            <ReleaseChecklist
+              selectedProject={selectedProject}
+              message1={message1}
+              message2={message2}
             />
-
-            <MessageAccordion
-              title="Release Approval Message"
-              message={message2}
-              disabled={!isFormValid}
-            />
-            
-            <ReleaseChecklist />
           </Stack>
         </Stack>
       </Container>
