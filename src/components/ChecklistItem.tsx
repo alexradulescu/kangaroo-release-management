@@ -23,7 +23,6 @@ interface ChecklistItemProps {
   checked: boolean
   subItems?: SubItem[]
   isLastInSection?: boolean
-  disabled: boolean
 }
 
 export const ChecklistItem = memo(function ChecklistItem({
@@ -36,7 +35,6 @@ export const ChecklistItem = memo(function ChecklistItem({
   message,
   subItems,
   isLastInSection = false,
-  disabled,
 }: ChecklistItemProps) {
   const [expanded, setExpanded] = React.useState(false)
   const { checkedItems, checkedSubItems, toggleItem, toggleSubItem } = useChecklistStore()
@@ -88,7 +86,6 @@ export const ChecklistItem = memo(function ChecklistItem({
               checked={checkedItems.includes(id)}
               onChange={() => toggleItem(id)}
               styles={{ input: { cursor: 'pointer' } }}
-              disabled={disabled}
               label={
                 <Stack gap={4}>
                   <Text size='sm' style={{ cursor: 'default' }}>
@@ -112,7 +109,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                 size='xs'
                 onClick={openLink}
                 leftSection={<ExternalLink size={14} />}
-                disabled={disabled}
               >
                 <Box display={{ base: 'none', sm: 'block' }}>Open</Box>
               </Button>
@@ -125,7 +121,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                   size='xs'
                   onClick={(e: React.MouseEvent) => copyAndSlack(e, slackLink)}
                   leftSection={<MessageSquare size={14} />}
-                  disabled={disabled}
                 >
                   <Box display={{ base: 'none', sm: 'block' }}>Copy & Slack</Box>
                 </Button>
@@ -135,7 +130,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                   size='xs'
                   onClick={copyToClipboard}
                   leftSection={<Copy size={14} />}
-                  disabled={disabled}
                 >
                   <Box display={{ base: 'none', sm: 'block' }}>Copy</Box>
                 </Button>
@@ -145,7 +139,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                   size='xs'
                   onClick={(e: React.MouseEvent) => openSlack(e, slackLink)}
                   leftSection={<Slack size={14} />}
-                  disabled={disabled}
                 >
                   <Box display={{ base: 'none', sm: 'block' }}>Slack</Box>
                 </Button>
@@ -158,7 +151,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                 size='xs'
                 onClick={toggleExpand}
                 rightSection={<ChevronDown size={14} />}
-                disabled={disabled}
               >
                 <Box display={{ base: 'none', sm: 'block' }}>{expanded ? 'Hide Steps' : 'Show Steps'}</Box>
               </Button>
@@ -176,7 +168,6 @@ export const ChecklistItem = memo(function ChecklistItem({
                   onChange={() => toggleSubItem(subItem.id)}
                   label={subItem.label}
                   styles={{ input: { cursor: 'pointer' } }}
-                  disabled={disabled}
                 />
               </Group>
             ))}

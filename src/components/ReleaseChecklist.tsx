@@ -165,7 +165,20 @@ export const ReleaseChecklist = memo(function ReleaseChecklist({
   const totalCount = CHECKLIST_ITEMS.length
 
   return (
-    <Accordion defaultValue='checklist' variant='contained'>
+    <Accordion
+      defaultValue='checklist'
+      variant='contained'
+      style={
+        disabled
+          ? {
+              pointerEvents: 'none',
+              opacity: '0.6',
+              filter: 'grayscale(1) blur(2px)',
+              transition: 'opacity .25s, filter .25s',
+            }
+          : { transition: 'opacity .25s, filter .25s' }
+      }
+    >
       <Accordion.Item value='checklist'>
         <Accordion.Control>
           <Group justify='space-between' wrap='nowrap' style={{ width: '100%' }} pr='sm'>
@@ -200,9 +213,6 @@ export const ReleaseChecklist = memo(function ReleaseChecklist({
                       key={item.id}
                       {...item}
                       checked={checkedItems.includes(item.id)}
-                      onToggle={handleToggle}
-                      onSubItemToggle={handleSubItemToggle}
-                      checkedSubItems={checkedSubItems}
                       message={
                         item.id === 'security-message'
                           ? message1
@@ -211,7 +221,6 @@ export const ReleaseChecklist = memo(function ReleaseChecklist({
                             : undefined
                       }
                       isLastInSection={index === array.length - 1}
-                      disabled={disabled}
                     />
                   ))}
                 </Stack>
